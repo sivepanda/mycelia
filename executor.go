@@ -26,10 +26,7 @@ func (e *Executor) ExecuteCategoryWithChangedFiles(category string, changedFiles
 		return err
 	}
 
-	// Filter commands to only those whose trigger files were changed
-	if len(changedFiles) > 0 {
-		commands = filterByTriggerFiles(commands, changedFiles)
-	}
+	commands = filterByTriggerFiles(commands, changedFiles)
 
 	if len(commands) == 0 {
 		fmt.Printf("No %s commands to run.\n", category)
@@ -71,10 +68,13 @@ func (e *Executor) ExecuteCategoryWithChangedFiles(category string, changedFiles
 // filterByTriggerFiles returns only commands whose trigger files appear in the changed files list.
 // Commands with no trigger files always run.
 func filterByTriggerFiles(commands []Command, changedFiles []string) []Command {
+	if len(changedFiles) == 0 {
+		return nil
+	}
+
 	var filtered []Command
 	for _, cmd := range commands {
 		if len(cmd.TriggerFiles) == 0 {
-			// No trigger files specified — always run
 			filtered = append(filtered, cmd)
 			continue
 		}

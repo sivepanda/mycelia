@@ -22,10 +22,10 @@ type Config struct {
 	PostCheckout            []Command `json:"post-checkout"`
 }
 
-const (
-	ConfigVersion = "1.0"
-	ConfigFile    = "carya.json"
-)
+const ConfigVersion = "1.0"
+
+// ConfigFile is the name of the config file. Override this to change the default.
+var ConfigFile = "mycelia.json"
 
 func NewConfig() *Config {
 	return &Config{
@@ -35,7 +35,7 @@ func NewConfig() *Config {
 	}
 }
 
-// GetConfigPath returns the path to the shared project config file (carya.json in project root).
+// GetConfigPath returns the path to the config file in the project root.
 // This file is tracked by git so the team shares the same housekeeping configuration.
 func GetConfigPath() (string, error) {
 	wd, err := os.Getwd()
