@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -12,13 +11,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewRootCmd creates the root command tree. The binary name is derived from
-// os.Args[0] so both "mycelia" and "myc" work identically.
 func NewRootCmd() *cobra.Command {
-	name := filepath.Base(os.Args[0])
-
 	rootCmd := &cobra.Command{
-		Use:   name,
+		Use:   "mycelia",
 		Short: "Mycelia manages housekeeping commands for your project",
 		Long:  `Mycelia detects package managers and manages housekeeping commands that run after git operations like pull and checkout.`,
 		Run: func(cmd *cobra.Command, args []string) {
@@ -31,7 +26,34 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 
-	detectCmd := &cobra.Command{
+	rootCmd.AddCommand(detectCmd())
+	rootCmd.AddCommand(suggestCmd("mycelia"))
+	rootCmd.AddCommand(autoCmd())
+	rootCmd.AddCommand(addCmd())
+	rootCmd.AddCommand(listCmd())
+	rootCmd.AddCommand(editCmd())
+	rootCmd.AddCommand(runCmd())
+	rootCmd.AddCommand(pullCmd("mycelia"))
+	rootCmd.AddCommand(checkoutCmd("mycelia"))
+
+	return rootCmd
+}
+
+func NewMycCmd() *cobra.Command {
+	rootCmd := &cobra.Command{
+		Use:   "myc",
+		Short: "Run mycelia housekeeping commands",
+	}
+
+	rootCmd.AddCommand(runCmd())
+	rootCmd.AddCommand(pullCmd("myc"))
+	rootCmd.AddCommand(checkoutCmd("myc"))
+
+	return rootCmd
+}
+
+func detectCmd() *cobra.Command {
+	return &cobra.Command{
 		Use:   "detect",
 		Short: "Detect package managers and build systems",
 		Run: func(cmd *cobra.Command, args []string) {
@@ -53,8 +75,10 @@ func NewRootCmd() *cobra.Command {
 			}
 		},
 	}
+}
 
-	suggestCmd := &cobra.Command{
+func suggestCmd(name string) *cobra.Command {
+	return &cobra.Command{
 		Use:   "suggest <category>",
 		Short: "Show suggested commands for a category",
 		Args:  cobra.ExactArgs(1),
@@ -88,8 +112,10 @@ func NewRootCmd() *cobra.Command {
 			fmt.Printf("  %s auto %s\n", name, category)
 		},
 	}
+}
 
-	autoCmd := &cobra.Command{
+func autoCmd() *cobra.Command {
+	return &cobra.Command{
 		Use:   "auto <category>",
 		Short: "Auto-detect and add commands to config",
 		Args:  cobra.ExactArgs(1),
@@ -161,8 +187,10 @@ func NewRootCmd() *cobra.Command {
 			fmt.Printf("\nSuccessfully added %d %s commands!\n", count, category)
 		},
 	}
+}
 
-	addCmd := &cobra.Command{
+func addCmd() *cobra.Command {
+	cmd := &cobra.Command{
 		Use:   "add <command>",
 		Short: "Manually add a command",
 		Args:  cobra.ExactArgs(1),
@@ -222,12 +250,15 @@ func NewRootCmd() *cobra.Command {
 			fmt.Printf("Added %s command: %s\n", category, command)
 		},
 	}
-	addCmd.Flags().Bool("post-pull", false, "Add command to post-pull category")
-	addCmd.Flags().Bool("post-checkout", false, "Add command to post-checkout category")
-	addCmd.Flags().StringP("working-dir", "d", ".", "Working directory for the command")
-	addCmd.Flags().StringP("description", "m", "", "Description of the command")
+	cmd.Flags().Bool("post-pull", false, "Add command to post-pull category")
+	cmd.Flags().Bool("post-checkout", false, "Add command to post-checkout category")
+	cmd.Flags().StringP("working-dir", "d", ".", "Working directory for the command")
+	cmd.Flags().StringP("description", "m", "", "Description of the command")
+	return cmd
+}
 
-	listCmd := &cobra.Command{
+func listCmd() *cobra.Command {
+	return &cobra.Command{
 		Use:   "list",
 		Short: "List all configured commands",
 		Run: func(cmd *cobra.Command, args []string) {
@@ -265,8 +296,10 @@ func NewRootCmd() *cobra.Command {
 			}
 		},
 	}
+}
 
-	editCmd := &cobra.Command{
+func editCmd() *cobra.Command {
+	return &cobra.Command{
 		Use:   "edit",
 		Short: "Open config in $EDITOR",
 		Run: func(cmd *cobra.Command, args []string) {
@@ -276,8 +309,10 @@ func NewRootCmd() *cobra.Command {
 			}
 		},
 	}
+}
 
-	runCmd := &cobra.Command{
+func runCmd() *cobra.Command {
+	cmd := &cobra.Command{
 		Use:   "run <category>",
 		Short: "Execute commands for a category",
 		Args:  cobra.ExactArgs(1),
@@ -303,9 +338,12 @@ func NewRootCmd() *cobra.Command {
 			}
 		},
 	}
-	runCmd.Flags().Bool("auto", false, "Run commands without confirmation")
+	cmd.Flags().Bool("auto", false, "Run commands without confirmation")
+	return cmd
+}
 
-	pullCmd := &cobra.Command{
+func pullCmd(name string) *cobra.Command {
+	cmd := &cobra.Command{
 		Use:   "pull",
 		Short: "Run post-pull housekeeping commands",
 		Long:  fmt.Sprintf("Shortcut for \"%s run post-pull\". Executes all configured post-pull commands.", name),
@@ -325,9 +363,12 @@ func NewRootCmd() *cobra.Command {
 			}
 		},
 	}
-	pullCmd.Flags().Bool("auto", false, "Run commands without confirmation")
+	cmd.Flags().Bool("auto", false, "Run commands without confirmation")
+	return cmd
+}
 
-	checkoutCmd := &cobra.Command{
+func checkoutCmd(name string) *cobra.Command {
+	cmd := &cobra.Command{
 		Use:   "checkout",
 		Short: "Run post-checkout housekeeping commands",
 		Long:  fmt.Sprintf("Shortcut for \"%s run post-checkout\". Executes all configured post-checkout commands.", name),
@@ -347,17 +388,6 @@ func NewRootCmd() *cobra.Command {
 			}
 		},
 	}
-	checkoutCmd.Flags().Bool("auto", false, "Run commands without confirmation")
-
-	rootCmd.AddCommand(detectCmd)
-	rootCmd.AddCommand(suggestCmd)
-	rootCmd.AddCommand(autoCmd)
-	rootCmd.AddCommand(addCmd)
-	rootCmd.AddCommand(listCmd)
-	rootCmd.AddCommand(editCmd)
-	rootCmd.AddCommand(runCmd)
-	rootCmd.AddCommand(pullCmd)
-	rootCmd.AddCommand(checkoutCmd)
-
-	return rootCmd
+	cmd.Flags().Bool("auto", false, "Run commands without confirmation")
+	return cmd
 }
