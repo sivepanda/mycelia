@@ -146,6 +146,8 @@ type Setup struct {
 	err             error
 	width           int
 	height          int
+	hPos            lipgloss.Position
+	vPos            lipgloss.Position
 	styles          SetupStyles
 }
 
@@ -184,6 +186,14 @@ func NewSetup() Setup {
 func (s Setup) WithStyles(styles SetupStyles) Setup {
 	s.styles = styles
 	s.spinner.Style = lipgloss.NewStyle().Foreground(styles.SpinnerColor)
+	return s
+}
+
+// WithPosition sets the horizontal and vertical placement within the
+// available width/height. Use lipgloss.Center for both to center the wizard.
+func (s Setup) WithPosition(hPos, vPos lipgloss.Position) Setup {
+	s.hPos = hPos
+	s.vPos = vPos
 	return s
 }
 
@@ -593,19 +603,21 @@ func (s Setup) View() string {
 		boxWidth = min(s.width-10, 70)
 	}
 
+	var content string
+
 	switch s.state {
 	case SetupDetecting:
 		title := st.Title.Render("⚙ HOUSEKEEPING SETUP")
 		text := st.Text.Render("Detecting package managers and build systems...")
 		box := st.Box.Width(boxWidth).Render(s.spinner.View() + " " + text)
-		return join(title, "", box)
+		content = lipgloss.JoinVertical(s.hPos, title, "", box)
 
 	case SetupPackageSelect:
 		title := st.Title.Render("✓ DETECTED PACKAGES")
 		header := st.Header.Margin(0, 0, 1, 0).Render("Select which package managers to use:")
 		box := st.Box.Width(boxWidth).Render(s.packages.View())
 		help := st.Help.Margin(1, 0, 0, 0).Render("↑/↓ navigate • x toggle • enter continue")
-		return join(title, "", header, box, help)
+		content = lipgloss.JoinVertical(s.hPos, title, "", header, box, help)
 
 	case SetupCategorySelect:
 		title := st.Title.Render("✓ SELECTED PACKAGES")
@@ -622,7 +634,7 @@ func (s Setup) View() string {
 		catHeader := st.Header.Margin(2, 0, 1, 0).Render("Select categories to configure:")
 		catBox := st.Box.Width(boxWidth).Render(s.categories.View())
 		help := st.Help.Margin(1, 0, 0, 0).Render("↑/↓ navigate • x toggle • enter continue")
-		return join(title, "", pkgBox, catHeader, catBox, help)
+		content = lipgloss.JoinVertical(s.hPos, title, "", pkgBox, catHeader, catBox, help)
 
 	case SetupCommandSelect:
 		selectedCats := s.categories.Selected()
@@ -633,7 +645,7 @@ func (s Setup) View() string {
 		title := st.Title.Render(fmt.Sprintf("⚙ %s COMMANDS", strings.ToUpper(catName)))
 		box := st.ActiveBox.Width(boxWidth + 10).Render(s.commands.View())
 		help := st.Help.Margin(1, 0, 0, 0).Render("↑/↓ navigate • x toggle • i add manual • enter continue")
-		return join(title, "", box, help)
+		content = lipgloss.JoinVertical(s.hPos, title, "", box, help)
 
 	case SetupManualInput:
 		selectedCats := s.categories.Selected()
@@ -645,7 +657,7 @@ func (s Setup) View() string {
 		header := st.Header.Margin(0, 0, 1, 0).Render("Enter command details:")
 		box := st.Box.Width(boxWidth + 10).Render(s.form.View())
 		help := st.Help.Margin(1, 0, 0, 0).Render("tab/↑/↓ navigate fields • enter submit • esc cancel")
-		return join(title, "", header, box, help)
+		content = lipgloss.JoinVertical(s.hPos, title, "", header, box, help)
 
 	case SetupConfirm:
 		title := st.Title.Render("✓ CONFIRM SELECTION")
@@ -667,13 +679,13 @@ func (s Setup) View() string {
 		countHeader := st.Header.Render(fmt.Sprintf("Ready to add %d %s commands:", selectedCount, catName))
 		box := st.Box.Width(boxWidth + 10).Render(strings.Join(selectedList, "\n"))
 		help := st.Help.Margin(1, 0, 0, 0).Render("enter confirm • q cancel")
-		return join(title, "", countHeader, "", box, help)
+		content = lipgloss.JoinVertical(s.hPos, title, "", countHeader, "", box, help)
 
 	case SetupExecute:
 		title := st.Title.Render("⚙ PROCESSING")
 		text := st.Text.Render("Adding selected commands to configuration...")
 		box := st.Box.Width(boxWidth).Render(s.spinner.View() + " " + text)
-		return join(title, "", box)
+		content = lipgloss.JoinVertical(s.hPos, title, "", box)
 
 	case SetupComplete:
 		if s.err != nil {
@@ -686,30 +698,32 @@ func (s Setup) View() string {
 				Width(boxWidth).
 				Render(errorMsg)
 			help := st.Help.Margin(1, 0, 0, 0).Render("enter exit")
-			return join(title, "", errorBox, help)
+			content = lipgloss.JoinVertical(s.hPos, title, "", errorBox, help)
+		} else {
+			title := st.Success.Render("✓ COMPLETE")
+			selectedCats := s.categories.Selected()
+			var catNames []string
+			for _, cat := range selectedCats {
+				catNames = append(catNames, cat.Name)
+			}
+			categoryText := strings.Join(catNames, " and ")
+			successMsg := st.Success.Render(fmt.Sprintf("Successfully added %d commands for %s!", s.addedCount, categoryText))
+			successBox := lipgloss.NewStyle().
+				Border(lipgloss.RoundedBorder()).
+				BorderForeground(lipgloss.Color("#9ECE6A")).
+				Padding(1, 2).
+				Width(boxWidth).
+				Render(successMsg)
+			help := st.Help.Margin(1, 0, 0, 0).Render("enter exit")
+			content = lipgloss.JoinVertical(s.hPos, title, "", successBox, help)
 		}
 
-		title := st.Success.Render("✓ COMPLETE")
-		selectedCats := s.categories.Selected()
-		var catNames []string
-		for _, cat := range selectedCats {
-			catNames = append(catNames, cat.Name)
-		}
-		categoryText := strings.Join(catNames, " and ")
-		successMsg := st.Success.Render(fmt.Sprintf("Successfully added %d commands for %s!", s.addedCount, categoryText))
-		successBox := lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("#9ECE6A")).
-			Padding(1, 2).
-			Width(boxWidth).
-			Render(successMsg)
-		help := st.Help.Margin(1, 0, 0, 0).Render("enter exit")
-		return join(title, "", successBox, help)
+	default:
+		return ""
 	}
 
-	return ""
-}
-
-func join(parts ...string) string {
-	return lipgloss.JoinVertical(lipgloss.Left, parts...)
+	if s.width > 0 && s.height > 0 {
+		return lipgloss.Place(s.width, s.height, s.hPos, s.vPos, content)
+	}
+	return content
 }

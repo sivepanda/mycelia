@@ -55,6 +55,7 @@ type Selector[T any] struct {
 	detailFunc func(T) string
 	styles     SelectorStyles
 	width      int
+	align      lipgloss.Position
 }
 
 // NewSelector creates a Selector. All items start unselected.
@@ -94,6 +95,12 @@ func (s Selector[T]) WithSelected(selected bool) Selector[T] {
 // WithWidth sets the render width.
 func (s Selector[T]) WithWidth(w int) Selector[T] {
 	s.width = w
+	return s
+}
+
+// WithAlign sets the horizontal alignment for rendered content.
+func (s Selector[T]) WithAlign(align lipgloss.Position) Selector[T] {
+	s.align = align
 	return s
 }
 
@@ -215,5 +222,9 @@ func (s Selector[T]) View() string {
 		}
 	}
 
-	return strings.Join(lines, "\n")
+	content := strings.Join(lines, "\n")
+	if s.width > 0 {
+		return lipgloss.PlaceHorizontal(s.width, s.align, content)
+	}
+	return content
 }

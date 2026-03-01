@@ -184,7 +184,9 @@ func (m Menu) activateMenuItem() (tea.Model, tea.Cmd) {
 	item := menuItems[m.cursor]
 	switch item.action {
 	case ActionSetup:
-		m.setup = primitives.NewSetup().SetSize(m.width, m.height)
+		m.setup = primitives.NewSetup().
+			SetSize(m.width, m.height).
+			WithPosition(lipgloss.Center, lipgloss.Center)
 		m.view = ViewSetup
 		return m, m.setup.Init()
 

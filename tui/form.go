@@ -42,6 +42,8 @@ type Form struct {
 	inputs []textinput.Model
 	focus  int
 	styles FormStyles
+	width  int
+	align  lipgloss.Position
 }
 
 // NewForm creates a Form from field definitions.
@@ -76,6 +78,18 @@ func (f Form) WithStyles(styles FormStyles) Form {
 			f.inputs[i].Width = styles.InputWidth
 		}
 	}
+	return f
+}
+
+// WithWidth sets the render width.
+func (f Form) WithWidth(w int) Form {
+	f.width = w
+	return f
+}
+
+// WithAlign sets the horizontal alignment for rendered content.
+func (f Form) WithAlign(align lipgloss.Position) Form {
+	f.align = align
 	return f
 }
 
@@ -163,5 +177,9 @@ func (f Form) View() string {
 			lines = append(lines, "")
 		}
 	}
-	return strings.Join(lines, "\n")
+	content := strings.Join(lines, "\n")
+	if f.width > 0 {
+		return lipgloss.PlaceHorizontal(f.width, f.align, content)
+	}
+	return content
 }
