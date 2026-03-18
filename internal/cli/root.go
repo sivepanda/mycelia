@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 	"github.com/sivepanda/mycelia"
 	internaltui "github.com/sivepanda/mycelia/internal/tui"
 	"github.com/spf13/cobra"
@@ -18,7 +18,7 @@ func NewRootCmd() *cobra.Command {
 		Long:  `Mycelia detects package managers and manages housekeeping commands that run after git operations like pull and checkout.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			m := internaltui.NewMenu()
-			p := tea.NewProgram(m, tea.WithAltScreen())
+			p := tea.NewProgram(m)
 			if _, err := p.Run(); err != nil {
 				fmt.Fprintf(os.Stderr, "Error running TUI: %v\n", err)
 				os.Exit(1)

@@ -3,9 +3,9 @@ package tui
 import (
 	"strings"
 
-	"github.com/charmbracelet/bubbles/textinput"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/textinput"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 )
 
 // FormStyles configures the visual appearance of a Form.
@@ -56,7 +56,7 @@ func NewForm(fields []FormField) Form {
 		if ti.CharLimit == 0 {
 			ti.CharLimit = 256
 		}
-		ti.Width = 50
+		ti.SetWidth(50)
 		if i == 0 {
 			ti.Focus()
 		}
@@ -75,7 +75,7 @@ func (f Form) WithStyles(styles FormStyles) Form {
 	f.styles = styles
 	if styles.InputWidth > 0 {
 		for i := range f.inputs {
-			f.inputs[i].Width = styles.InputWidth
+			f.inputs[i].SetWidth(styles.InputWidth)
 		}
 	}
 	return f

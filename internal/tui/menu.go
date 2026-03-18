@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/help"
-	"github.com/charmbracelet/bubbles/key"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/help"
+	"charm.land/bubbles/v2/key"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/sivepanda/mycelia"
 	primitives "github.com/sivepanda/mycelia/tui"
 )
@@ -393,15 +393,19 @@ func (m Menu) runEdit() (tea.Model, tea.Cmd) {
 }
 
 // View renders the current screen.
-func (m Menu) View() string {
+func (m Menu) View() tea.View {
+	var content string
 	switch m.view {
 	case ViewSetup:
-		return m.setup.View()
+		content = m.setup.View()
 	case ViewResult:
-		return m.viewResult()
+		content = m.viewResult()
 	default:
-		return m.viewMenu()
+		content = m.viewMenu()
 	}
+	v := tea.NewView(content)
+	v.AltScreen = true
+	return v
 }
 
 func (m Menu) viewMenu() string {

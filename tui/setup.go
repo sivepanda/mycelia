@@ -2,11 +2,12 @@ package tui
 
 import (
 	"fmt"
+	"image/color"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/spinner"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/spinner"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/sivepanda/mycelia"
 )
 
@@ -26,20 +27,20 @@ const (
 
 // SetupStyles configures the visual appearance of the Setup wizard.
 type SetupStyles struct {
-	Title       lipgloss.Style
-	Header      lipgloss.Style
-	Text        lipgloss.Style
-	Subtle      lipgloss.Style
-	Help        lipgloss.Style
-	Success     lipgloss.Style
-	Error       lipgloss.Style
-	Box         lipgloss.Style
-	ActiveBox   lipgloss.Style
-	DimBox      lipgloss.Style
-	ItemStyle   lipgloss.Style
-	ActiveItem  lipgloss.Style
-	BulletIcon  string
-	SpinnerColor lipgloss.Color
+	Title        lipgloss.Style
+	Header       lipgloss.Style
+	Text         lipgloss.Style
+	Subtle       lipgloss.Style
+	Help         lipgloss.Style
+	Success      lipgloss.Style
+	Error        lipgloss.Style
+	Box          lipgloss.Style
+	ActiveBox    lipgloss.Style
+	DimBox       lipgloss.Style
+	ItemStyle    lipgloss.Style
+	ActiveItem   lipgloss.Style
+	BulletIcon   string
+	SpinnerColor color.Color
 }
 
 // DefaultSetupStyles returns Tokyo Night themed styles.
