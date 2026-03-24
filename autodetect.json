@@ -161,6 +161,48 @@
     }
   },
   {
+    "name": "python-uv",
+    "detectFile": "uv.lock",
+    "description": "Python (uv)",
+    "commands": {
+      "post-pull": [
+        {
+          "command": "uv sync",
+          "workingDir": ".",
+          "description": "Sync uv dependencies"
+        }
+      ],
+      "post-checkout": [
+        {
+          "command": "uv sync",
+          "workingDir": ".",
+          "description": "Sync uv dependencies"
+        }
+      ]
+    }
+  },
+  {
+    "name": "python-conda",
+    "detectFile": "environment.yml",
+    "description": "Python (Conda)",
+    "commands": {
+      "post-pull": [
+        {
+          "command": "conda env update --file environment.yml --prune",
+          "workingDir": ".",
+          "description": "Update Conda environment"
+        }
+      ],
+      "post-checkout": [
+        {
+          "command": "conda env update --file environment.yml --prune",
+          "workingDir": ".",
+          "description": "Update Conda environment"
+        }
+      ]
+    }
+  },
+  {
     "name": "python-pipenv",
     "detectFile": "Pipfile",
     "description": "Python (Pipenv)",
