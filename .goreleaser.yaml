@@ -1,0 +1,35 @@
+version: 2
+
+project_name: mycelia
+
+builds:
+  - id: mycelia
+    main: ./cmd/mycelia
+    binary: mycelia
+    goos:
+      - linux
+    goarch:
+      - amd64
+
+  - id: myc
+    main: ./cmd/myc
+    binary: myc
+    goos:
+      - linux
+    goarch:
+      - amd64
+
+archives:
+  - id: aur-source
+    ids:
+      - mycelia
+      - myc
+    formats:
+      - tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  disable: true

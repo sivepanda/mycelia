@@ -30,9 +30,9 @@ sudo mv mycelia myc /usr/local/bin/
 
 All `run`, `pull`, and `checkout` commands support `--auto` to skip confirmation.  
 
-## TUI Primitives
+## TUI Primitive API
 
-Mycelia's TUI is built on a set of **headless primitives** in the `tui` package (`github.com/sivepanda/mycelia/tui`). These are generic, reusable components that never handle key input directly — the parent BubbleTea model drives them via imperative method calls. This makes them easy to compose into custom UIs.
+Mycelia's TUI is built on a set of **primitive** APIs in the `tui` package (`github.com/sivepanda/mycelia/tui`). These are generic, reusable components that the parent BubbleTea model drives directly via imperative method calls. This makes them easy to compose into custom UIs.
 
 ### Selector[T]
 
