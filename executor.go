@@ -16,10 +16,22 @@ func NewExecutor(config *Config) *Executor {
 	return &Executor{config: config}
 }
 
+// ExecuteCategory runs every command configured for category, regardless of
+// trigger files. Use it when no information about changed files is available
+// (for example a plain "mycelia run post-pull").
 func (e *Executor) ExecuteCategory(category string, autoApprove bool) error {
 	return e.ExecuteCategoryWithChangedFiles(category, nil, autoApprove)
 }
 
+// ExecuteCategoryWithChangedFiles runs the commands configured for category,
+// using changedFiles to decide which trigger-gated commands are needed.
+//
+// A nil changedFiles means "unknown": no filtering is applied and every
+// command runs, exactly like ExecuteCategory. A non-nil changedFiles, even an
+// empty one, is treated as the authoritative list of changed paths: commands
+// without trigger files always run, and commands with trigger files run only
+// if one of their triggers matches a changed path. So a non-nil empty slice
+// means "nothing changed" and skips every trigger-gated command.
 func (e *Executor) ExecuteCategoryWithChangedFiles(category string, changedFiles []string, autoApprove bool) error {
 	commands, err := e.config.GetCommands(category)
 	if err != nil {
@@ -65,11 +77,16 @@ func (e *Executor) ExecuteCategoryWithChangedFiles(category string, changedFiles
 	return nil
 }
 
-// filterByTriggerFiles returns only commands whose trigger files appear in the changed files list.
-// Commands with no trigger files always run.
+// filterByTriggerFiles returns the commands that should run given changedFiles.
+//
+// If changedFiles is nil (no change information), all commands are returned
+// unfiltered. Otherwise commands with no trigger files are always kept, and
+// commands with trigger files are kept only if at least one trigger matches a
+// changed path. An empty, non-nil changedFiles therefore keeps only the
+// commands without trigger files.
 func filterByTriggerFiles(commands []Command, changedFiles []string) []Command {
-	if len(changedFiles) == 0 {
-		return nil
+	if changedFiles == nil {
+		return commands
 	}
 
 	var filtered []Command
